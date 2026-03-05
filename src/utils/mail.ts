@@ -366,8 +366,8 @@ async function listMailboxes(
     : `set targetAccounts to accounts`;
 
   const mailboxCheck = mailboxFilter
-    ? `if (name of mb) is "${escapeAppleScript(mailboxFilter)}" then set end of resultList to (name of acct) & "||" & (name of mb)`
-    : `set end of resultList to (name of acct) & "||" & (name of mb)`;
+    ? `if (name of mb) is "${escapeAppleScript(mailboxFilter)}" then set end of resultList to (name of acct) & tab & (name of mb)`
+    : `set end of resultList to (name of acct) & tab & (name of mb)`;
 
   const script = `
 tell application "Mail"
@@ -388,9 +388,12 @@ end tell`;
   }
 
   return result.split("\n").map((line) => {
-    const [accountName, mailboxName] = line.split("||");
-    return { accountName, mailboxName };
-  });
+    const tabIndex = line.indexOf("\t");
+    if (tabIndex === -1) return null;
+    const accountName = line.substring(0, tabIndex);
+    const mailboxName = line.substring(tabIndex + 1);
+    return accountName && mailboxName ? { accountName, mailboxName } : null;
+  }).filter((mb): mb is MailboxRef => mb !== null);
 }
 
 async function searchMailbox(
