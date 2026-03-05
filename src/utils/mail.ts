@@ -474,12 +474,16 @@ end tell`;
       if (matches && matches.length > 0) {
         const parsedEmails: EmailMessage[] = [];
         for (const match of matches) {
-          const props = match.substring(1, match.length - 1).split(",");
+          const props = match
+            .substring(1, match.length - 1)
+            .split(/,\s(?=[A-Za-z][A-Za-z0-9_]*\s*:)/);
           const emailData: Record<string, string> = {};
           for (const prop of props) {
-            const parts = prop.split(":");
-            if (parts.length >= 2) {
-              emailData[parts[0].trim()] = parts.slice(1).join(":").trim();
+            const colonIndex = prop.indexOf(":");
+            if (colonIndex > -1) {
+              const key = prop.slice(0, colonIndex).trim();
+              const value = prop.slice(colonIndex + 1).trim();
+              emailData[key] = value;
             }
           }
           if (emailData.subject || emailData.sender) {
